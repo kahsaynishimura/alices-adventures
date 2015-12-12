@@ -82,7 +82,7 @@ public class PracticeActivity extends AppCompatActivity {
             speech = SpeechRecognizer.createSpeechRecognizer(PracticeActivity.this);
             speech.setRecognitionListener(new CustomSpeechRecognition());
             recognizerIntent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
-            recognizerIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.US.toString());
+            recognizerIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, (new Locale("en_CA")).toString());
             recognizerIntent.putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE, this.getPackageName());
             recognizerIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_WEB_SEARCH);
             recognizerIntent.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 3);
@@ -104,7 +104,7 @@ public class PracticeActivity extends AppCompatActivity {
 
     public void startExercise() {
 
-        TTS.setLanguage(new Locale("en_US"));
+        TTS.setLanguage(new Locale("en_CA"));
         runScriptEntry();
     }
 
