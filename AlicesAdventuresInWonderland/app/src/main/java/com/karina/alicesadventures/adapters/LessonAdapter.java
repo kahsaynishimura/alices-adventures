@@ -4,12 +4,14 @@ import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.preference.PreferenceManager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -38,6 +40,7 @@ public class LessonAdapter extends ArrayAdapter<Lesson> {
         this.context = context;
     }
 
+
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
@@ -51,12 +54,17 @@ public class LessonAdapter extends ArrayAdapter<Lesson> {
         lessonName.setText(obj.getName());
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
         Integer lastCompletedLesson = sharedPreferences.getInt("last_lesson_completed_id", 0);
-        if (obj.get_id() <= lastCompletedLesson+1) {
-        //the next lesson must be unlocked as well.
-            ((ImageView) view.findViewById(R.id.imgPadLock)).setImageDrawable(context.getDrawable(R.drawable.padlock_unlock));
+        if (obj.get_id() <= lastCompletedLesson + 1) {
+            //the next lesson must be unlocked as well.
+
+            changeDrawable( ((ImageView) view.findViewById(R.id.imgPadLock)),"@drawable/padlock_unlock",context,R.drawable.padlock_unlock);
+
+
             if (obj.get_id() <= lastCompletedLesson) {
-            //completed lessons display a check mark
-                ((ImageView) view.findViewById(R.id.imgPadLock)).setImageDrawable(context.getDrawable(R.drawable.checkmark          ));
+                //completed lessons display a check mark
+
+                changeDrawable( ((ImageView) view.findViewById(R.id.imgPadLock)),"@drawable/checkmark",context,R.drawable.checkmark);
+
             }
             view.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -85,5 +93,16 @@ public class LessonAdapter extends ArrayAdapter<Lesson> {
 
         }
         return view;
+    }
+
+    private void changeDrawable( ImageView view, String uri, Context context, int id) {
+        if (Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) { //versao api >21
+            view.setImageDrawable(context.getDrawable(id));
+        } else {
+            int imageResource = context.getResources().getIdentifier(uri, null, context.getPackageName());
+
+            Drawable res = context.getResources().getDrawable(imageResource);
+            view.setImageDrawable(res);
+        }
     }
 }
