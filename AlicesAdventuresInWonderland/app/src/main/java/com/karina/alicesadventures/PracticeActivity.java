@@ -1,11 +1,14 @@
 package com.karina.alicesadventures;
 
+import android.Manifest;
 import android.annotation.TargetApi;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
+import android.graphics.drawable.Drawable;
 import android.media.MediaPlayer;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
@@ -21,12 +24,15 @@ import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
 import android.speech.tts.TextToSpeech;
 import android.speech.tts.UtteranceProgressListener;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -44,10 +50,13 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Locale;
 
 public class PracticeActivity extends AppCompatActivity {
 
     private static final long TRANSITION_PAUSE = 1000;
+    private static final int MY_PERMISSIONS_REQUEST_RECORD_AUDIO = 100;
     private SpeechRecognizer speech = null;
     private Intent recognizerIntent;
 
@@ -67,6 +76,7 @@ public class PracticeActivity extends AppCompatActivity {
 
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
 
+        checkConnection();
         current = new CurrentPracticeData();
         Integer lessonId = sharedPreferences.getInt("lesson_id", 0);
         updateTitleWithLessonName(lessonId);
@@ -81,9 +91,9 @@ public class PracticeActivity extends AppCompatActivity {
             speech = SpeechRecognizer.createSpeechRecognizer(PracticeActivity.this);
             speech.setRecognitionListener(new CustomSpeechRecognition());
             recognizerIntent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
-            recognizerIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_PREFERENCE, "en_US");
+            recognizerIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, (new Locale("en")).toString());
             recognizerIntent.putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE, this.getPackageName());
-            recognizerIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_WEB_SEARCH);
+            recognizerIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
             recognizerIntent.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 3);
 
 
@@ -97,11 +107,11 @@ public class PracticeActivity extends AppCompatActivity {
                     }
                 });
             }
-            checkConnection();
         }
     }
 
     public void startExercise() {
+        TTS.setLanguage(new Locale("en"));
         runScriptEntry();
     }
 
@@ -162,7 +172,6 @@ public class PracticeActivity extends AppCompatActivity {
         }
     }
 
-    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     private void runScriptEntry() {
         //gravar - start_time na tabela de user_script
         //
@@ -228,7 +237,7 @@ public class PracticeActivity extends AppCompatActivity {
 
                                 }
                             });
-                            TTS.speak(s.getTextToRead(), TextToSpeech.QUEUE_FLUSH, null, s.get_id().toString());
+                            speak(s.getTextToRead(), s.get_id().toString(), b);
 
                             break;
 
@@ -252,8 +261,7 @@ public class PracticeActivity extends AppCompatActivity {
 
                                 }
                             });
-                            TTS.speak(s.getTextToRead(), TextToSpeech.QUEUE_FLUSH, null, s.get_id().toString());
-
+                            speak(s.getTextToRead(), s.get_id().toString(), b);
                             break;
 
                         case 3:
@@ -373,10 +381,68 @@ public class PracticeActivity extends AppCompatActivity {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                speech.startListening(recognizerIntent);
+
+                if (Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) { //versao api >21
+                    // verify if user has granted this dangerous permission
+                    int permissionCheck = ContextCompat.checkSelfPermission(PracticeActivity.this,
+                            Manifest.permission.RECORD_AUDIO);
+                    if (permissionCheck != PackageManager.PERMISSION_GRANTED) {
+                        // Should we show an explanation?
+                        if (ActivityCompat.shouldShowRequestPermissionRationale(PracticeActivity.this,
+                                Manifest.permission.RECORD_AUDIO)) {
+
+                            // Show an expanation to the user *asynchronously* -- don't block
+                            // this thread waiting for the user's response! After the user
+                            // sees the explanation, try again to request the permission.
+
+                        } else {
+
+                            // No explanation needed, we can request the permission.
+
+                            ActivityCompat.requestPermissions(PracticeActivity.this,
+                                    new String[]{Manifest.permission.RECORD_AUDIO},
+                                    MY_PERMISSIONS_REQUEST_RECORD_AUDIO);
+
+                            // MY_PERMISSIONS_REQUEST_READ_CONTACTS is an
+                            // app-defined int constant. The callback method gets the
+                            // result of the request.
+                        }
+
+                    } else {
+                        speech.startListening(recognizerIntent);
+                    }
+                } else {
+                    speech.startListening(recognizerIntent);
+                }
             }
         });
 
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
+        switch (requestCode) {
+            case MY_PERMISSIONS_REQUEST_RECORD_AUDIO: {
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+
+                    // permission was granted, yay! Do the
+                    //  task you need to do.
+
+                    speech.startListening(recognizerIntent);
+
+                } else {
+                    finish();
+                    // permission denied, boo! Disable the
+                    // functionality that depends on this permission.
+                }
+                return;
+            }
+
+            // other 'case' lines to check for other
+            // permissions this app might request
+        }
     }
 
     @Override
@@ -393,7 +459,8 @@ public class PracticeActivity extends AppCompatActivity {
 
         @Override
         public void onReadyForSpeech(Bundle params) {
-            ((ImageButton) findViewById(R.id.mic)).setImageDrawable(getDrawable(R.drawable.mic_0_enabled));
+
+            changeDrawable(((ImageButton) findViewById(R.id.mic)), "@drawable/mic_0_enabled", PracticeActivity.this, R.drawable.mic_0_enabled);
             Log.i(LOG_TAG, "onReadyForSpeech");
         }
 
@@ -412,26 +479,26 @@ public class PracticeActivity extends AppCompatActivity {
                 switch ((int) rmsdB) {
                     case 1:
                     case 2:
-                        ((ImageButton) findViewById(R.id.mic)).setImageDrawable(getDrawable(R.drawable.mic_1));
+                        changeDrawable(((ImageButton) findViewById(R.id.mic)), "@drawable/mic_1", PracticeActivity.this, R.drawable.mic_1);
                         break;
                     case 3:
                     case 4:
-                        ((ImageButton) findViewById(R.id.mic)).setImageDrawable(getDrawable(R.drawable.mic_3));
+                        changeDrawable(((ImageButton) findViewById(R.id.mic)), "@drawable/mic_3", PracticeActivity.this, R.drawable.mic_3);
                         break;
                     case 5:
                     case 6:
-                        ((ImageButton) findViewById(R.id.mic)).setImageDrawable(getDrawable(R.drawable.mic_5));
+                        changeDrawable(((ImageButton) findViewById(R.id.mic)), "@drawable/mic_5", PracticeActivity.this, R.drawable.mic_5);
                         break;
                     case 7:
                     case 8:
-                        ((ImageButton) findViewById(R.id.mic)).setImageDrawable(getDrawable(R.drawable.mic_7));
+                        changeDrawable(((ImageButton) findViewById(R.id.mic)), "@drawable/mic_7", PracticeActivity.this, R.drawable.mic_7);
                         break;
                     case 9:
                     case 10:
-                        ((ImageButton) findViewById(R.id.mic)).setImageDrawable(getDrawable(R.drawable.mic_10));
+                        changeDrawable(((ImageButton) findViewById(R.id.mic)), "@drawable/mic_10", PracticeActivity.this, R.drawable.mic_10);
                         break;
                     default:
-                        ((ImageButton) findViewById(R.id.mic)).setImageDrawable(getDrawable(R.drawable.mic_0_enabled));
+                        changeDrawable(((ImageButton) findViewById(R.id.mic)), "@drawable/mic_0_enabled", PracticeActivity.this, R.drawable.mic_0_enabled);
                         break;
                 }
                 beganSpeech = false;
@@ -446,8 +513,8 @@ public class PracticeActivity extends AppCompatActivity {
 
         @Override
         public void onEndOfSpeech() {
+            changeDrawable(((ImageButton) findViewById(R.id.mic)), "@drawable/mic_disabled", PracticeActivity.this, R.drawable.mic_disabled);
 
-            ((ImageButton) findViewById(R.id.mic)).setImageDrawable(getDrawable(R.drawable.mic_disabled));
             Log.i(LOG_TAG, "onEndOfSpeech");
             speech.stopListening();
         }
@@ -455,7 +522,8 @@ public class PracticeActivity extends AppCompatActivity {
         @Override
         public void onError(int error) {
             Log.i(LOG_TAG, "onError: " + getErrorText(error));
-            ((ImageButton) findViewById(R.id.mic)).setImageDrawable(getDrawable(R.drawable.mic_disabled));
+            changeDrawable(((ImageButton) findViewById(R.id.mic)), "@drawable/mic_disabled", PracticeActivity.this, R.drawable.mic_disabled);
+
             speech.cancel();
         }
 
@@ -474,8 +542,9 @@ public class PracticeActivity extends AppCompatActivity {
 
         @Override
         public void onResults(Bundle results) {
+            changeDrawable(((ImageButton) findViewById(R.id.mic)), "@drawable/mic_disabled", PracticeActivity.this, R.drawable.mic_disabled);
 
-            ((ImageButton) findViewById(R.id.mic)).setImageDrawable(getDrawable(R.drawable.mic_disabled));
+
             Log.i(LOG_TAG, "onResults");
             ArrayList<String> matches = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
 
@@ -562,6 +631,17 @@ public class PracticeActivity extends AppCompatActivity {
 
     }
 
+    private void changeDrawable(ImageButton view, String uri, Context context, int id) {
+        if (Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) { //versao api >21
+            view.setImageDrawable(context.getDrawable(id));
+        } else {
+            int imageResource = context.getResources().getIdentifier(uri, null, context.getPackageName());
+
+            Drawable res = context.getResources().getDrawable(imageResource);
+            view.setImageDrawable(res);
+        }
+    }
+
     public void checkConnection() {
         ConnectivityManager cm =
                 (ConnectivityManager) this.getSystemService(Context.CONNECTIVITY_SERVICE);
@@ -631,4 +711,14 @@ public class PracticeActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
+
+    private void speak(String textToSpeak, String id, Bundle bundle) {
+        if (Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+            TTS.speak(textToSpeak, TextToSpeech.QUEUE_FLUSH, bundle, id);
+        } else {
+            HashMap<String, String> params = new HashMap<>();
+            params.put(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, id);
+            TTS.speak(textToSpeak, TextToSpeech.QUEUE_FLUSH, params);
+        }
+    }
 }

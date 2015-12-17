@@ -1,4 +1,4 @@
-package com.example.karina.alicesadventuresinwonderland;
+package com.karina.alicesadventures;
 
 import android.app.Application;
 import android.test.ApplicationTestCase;

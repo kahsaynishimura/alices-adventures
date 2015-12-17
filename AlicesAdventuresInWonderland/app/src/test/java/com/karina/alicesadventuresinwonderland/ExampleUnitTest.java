@@ -1,4 +1,4 @@
-package com.example.karina.alicesadventuresinwonderland;
+package com.karina.alicesadventures;
 
 import org.junit.Test;
 
