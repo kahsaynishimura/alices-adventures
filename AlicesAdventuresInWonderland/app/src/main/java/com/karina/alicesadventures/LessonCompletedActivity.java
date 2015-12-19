@@ -36,8 +36,10 @@ public class LessonCompletedActivity extends ActionBarActivity {
         Date startTime = new Date(millis);
         Integer totalHits = sharedPreferences.getInt("correct_sentence_count", 0);
         Integer wrongSentenceCount = sharedPreferences.getInt("wrong_sentence_count", 0);
-        Integer percentageWrong = (wrongSentenceCount * 100) / totalHits;
-
+        Integer percentageWrong = 0;
+        if (totalHits != 0) {//probably, there are no scripts for this lesson in the database
+            percentageWrong = (wrongSentenceCount * 100) / totalHits;
+        }
         //no matter what happens, if the student gets here, he is rewarded.
         Integer totalPoints = 2;
         ImageView userPointsImage = (ImageView) findViewById(R.id.user_points);
@@ -77,8 +79,8 @@ public class LessonCompletedActivity extends ActionBarActivity {
             e.printStackTrace();
         }
         if (db != null) {
-            String id=  db.addPracticeHistory(userId, lessonId, totalHits, percentageWrong, startTime.toString(), finishTime.toString(), totalPoints);
-            }
+            String id = db.addPracticeHistory(userId, lessonId, totalHits, percentageWrong, startTime.toString(), finishTime.toString(), totalPoints);
+        }
     }
 
     public void saveLastLessonCompletedId(SharedPreferences sharedPreferences) {
