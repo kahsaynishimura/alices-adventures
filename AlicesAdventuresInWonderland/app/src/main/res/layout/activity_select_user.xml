@@ -3,7 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#1a237e"
+    android:background="#242424"
     android:fillViewport="false">
 
     <LinearLayout
@@ -17,36 +17,10 @@
             android:id="@+id/logo"
             android:layout_width="wrap_content"
             android:background="@android:color/white"
-            android:paddingTop="@dimen/abc_action_button_min_width_material"
-            android:paddingBottom="@dimen/abc_action_button_min_width_material"
-            android:paddingRight="@dimen/abc_action_button_min_width_material"
-            android:paddingLeft="@dimen/abc_action_button_min_width_material"
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
             android:src="@drawable/logo"
             />
-
-        <EditText
-            android:textColor ="@android:color/white"
-            android:layout_marginTop="10dp"
-            android:id="@+id/student_code"
-            android:layout_width="wrap_content"
-            android:text="ST002"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal"
-            android:gravity="center_horizontal"
-            android:ems="10"/>
-
-        <Button
-            android:id="@+id/button"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="30dp"
-            android:onClick="findUser"
-            android:background="#0063CF"
-            android:textColor="@android:color/white"
-            android:text="@string/log_in"
-            android:layout_gravity="center_horizontal" />
 
     </LinearLayout>
 </ScrollView>
