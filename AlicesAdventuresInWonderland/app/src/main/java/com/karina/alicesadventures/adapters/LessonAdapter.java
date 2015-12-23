@@ -53,7 +53,7 @@ public class LessonAdapter extends ArrayAdapter<Lesson> {
         final Lesson l = obj;
         lessonName.setText(obj.getName());
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
-        Integer lastCompletedLesson = sharedPreferences.getInt("last_lesson_completed_id", 0);
+        Integer lastCompletedLesson = sharedPreferences.getInt("last_lesson_completed_id", 1000);
         if (obj.get_id() <= lastCompletedLesson + 1) {
             //the next lesson must be unlocked as well.
 

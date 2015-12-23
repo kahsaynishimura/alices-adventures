@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script>
+function separate(){
+	my_string=document.getElementById("demo").value;
+	
+	var my_string=document.getElementById("demo").value.split('\n');
+	
+	for(i=0;i<  my_string.length;i++){
+		if(my_string[i][0]==undefined||my_string[i][0]=='*'){
+			my_string.splice(i, 1);
+			i-=2;
+		}
+	}
+	document.getElementById("demo").value=my_string.join('\n');
+}
+</script>
+</head>
+<body>
+<form action="#" method="post">
+<textarea rows="14" id="demo" cols="50" >
+</textarea> 
+<input type="button" onclick="separate();" value="separar"/>
+</form>
+</body>
+</html>

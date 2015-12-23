@@ -32,6 +32,6 @@
     <string name="finish_time">Finish</string>
     <string name="correct"># correct sentences</string>
     <string name="errors_percentage">Errors</string>
-    <string name="title_activity_select_user">Enter your code</string>
+    <string name="title_activity_select_user">Alice\'s Adventures in Wonderland</string>
     <string name="log_in">Log in</string>
 </resources>
